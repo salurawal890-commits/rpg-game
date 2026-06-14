@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Battle Arena RPS</title>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:
+linear-gradient(
+135deg,
+#0f172a,
+#1e293b,
+#312e81
+);
+color:white;
+overflow:hidden;
+}
+
+.container{
+width:900px;
+padding:30px;
+border-radius:25px;
+background:rgba(255,255,255,.08);
+backdrop-filter:blur(10px);
+box-shadow:0 0 50px rgba(0,0,0,.5);
+text-align:center;
+}
+
+h1{
+font-size:3rem;
+margin-bottom:20px;
+}
+
+.scoreboard{
+display:flex;
+justify-content:space-around;
+font-size:1.6rem;
+margin-bottom:20px;
+}
+
+.battlefield{
+display:flex;
+justify-content:space-around;
+align-items:center;
+margin:40px 0;
+height:180px;
+}
+
+.fighter{
+font-size:120px;
+transition:.3s;
+}
+
+.vs{
+font-size:40px;
+font-weight:bold;
+}
+
+.choice{
+font-size:60px;
+padding:15px;
+margin:10px;
+border:none;
+border-radius:20px;
+cursor:pointer;
+transition:.3s;
+}
+
+.choice:hover{
+transform:scale(1.15);
+}
+
+.result{
+font-size:2rem;
+margin-top:20px;
+min-height:50px;
+}
+
+.status{
+font-size:1.2rem;
+margin-bottom:15px;
+color:#cbd5e1;
+}
+
+.restart{
+display:none;
+margin-top:20px;
+padding:12px 25px;
+font-size:18px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+}
+
+.punch-left{
+animation:punchLeft .25s infinite alternate;
+}
+
+.punch-right{
+animation:punchRight .25s infinite alternate;
+}
+
+@keyframes punchLeft{
+from{
+transform:translateX(0);
+}
+to{
+transform:translateX(50px);
+}
+}
+
+@keyframes punchRight{
+from{
+transform:translateX(0);
+}
+to{
+transform:translateX(-50px);
+}
+}
+
+.winner{
+transform:scale(1.2);
+filter:drop-shadow(0 0 20px gold);
+}
+
+.loser{
+opacity:.4;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>⚔️ Battle Arena ⚔️</h1>
+
+<div class="scoreboard">
+
+<div>
+🥷 Player:
+<span id="playerScore">0</span>
+</div>
+
+<div>
+🤖 Robot:
+<span id="botScore">0</span>
+</div>
+
+</div>
+
+<h3>🏆 First To 5 Wins</h3>
+
+<br>
+
+<div class="status" id="status">
+Choose your move!
+</div>
+
+<div class="battlefield">
+
+<div id="playerFighter" class="fighter">
+🥷
+</div>
+
+<div class="vs">
+VS
+</div>
+
+<div id="botFighter" class="fighter">
+🤖
+</div>
+
+</div>
+
+<div>
+
+<button class="choice"
+onclick="play('rock')">
+🪨
+</button>
+
+<button class="choice"
+onclick="play('paper')">
+📄
+</button>
+
+<button class="choice"
+onclick="play('scissors')">
+✂️
+</button>
+
+</div>
+
+<div id="result" class="result"></div>
+
+<button
+id="restartBtn"
+class="restart"
+onclick="location.reload()">
+🔄 Play Again
+</button>
+
+</div>
+
+<script>
+
+let playerScore = 0;
+let botScore = 0;
+
+const WIN_SCORE = 5;
+
+const moveEmoji = {
+rock:"🪨",
+paper:"📄",
+scissors:"✂️"
+};
+
+async function fightingAnimation(){
+
+const player =
+document.getElementById("playerFighter");
+
+const bot =
+document.getElementById("botFighter");
+
+player.classList.add("punch-left");
+bot.classList.add("punch-right");
+
+await new Promise(resolve =>
+setTimeout(resolve,1500)
+);
+
+player.classList.remove("punch-left");
+bot.classList.remove("punch-right");
+
+}
+
+async function play(playerChoice){
+
+if(
+playerScore >= WIN_SCORE ||
+botScore >= WIN_SCORE
+){
+return;
+}
+
+resetEffects();
+
+document.getElementById("status")
+.innerHTML =
+"🤖 Robot is thinking...";
+
+document.getElementById("result")
+.innerHTML = "";
+
+const choices =
+["rock","paper","scissors"];
+
+const botChoice =
+choices[Math.floor(Math.random()*3)];
+
+await fightingAnimation();
+
+document.getElementById("playerFighter")
+.innerHTML =
+moveEmoji[playerChoice];
+
+document.getElementById("botFighter")
+.innerHTML =
+moveEmoji[botChoice];
+
+await new Promise(resolve =>
+setTimeout(resolve,1000)
+);
+
+let result="";
+
+if(playerChoice === botChoice){
+
+result =
+"🤝 Tie Round!";
+
+}
+
+else if(
+
+(playerChoice==="rock" &&
+botChoice==="scissors")
+
+||
+
+(playerChoice==="paper" &&
+botChoice==="rock")
+
+||
+
+(playerChoice==="scissors" &&
+botChoice==="paper")
+
+){
+
+result =
+"🎉 You Win Round!";
+
+playerScore++;
+
+document
+.getElementById("playerFighter")
+.classList.add("winner");
+
+document
+.getElementById("botFighter")
+.classList.add("loser");
+
+confetti({
+particleCount:120,
+spread:90,
+origin:{y:0.6}
+});
+
+}
+else{
+
+result =
+"💀 Robot Wins Round!";
+
+botScore++;
+
+document
+.getElementById("botFighter")
+.classList.add("winner");
+
+document
+.getElementById("playerFighter")
+.classList.add("loser");
+
+}
+
+document
+.getElementById("playerScore")
+.innerText = playerScore;
+
+document
+.getElementById("botScore")
+.innerText = botScore;
+
+document
+.getElementById("result")
+.innerHTML = result;
+
+document
+.getElementById("status")
+.innerHTML =
+`You played <b>${playerChoice}</b> | Robot played <b>${botChoice}</b>`;
+
+checkWinner();
+
+setTimeout(()=>{
+
+document
+.getElementById("playerFighter")
+.innerHTML = "🥷";
+
+document
+.getElementById("botFighter")
+.innerHTML = "🤖";
+
+resetEffects();
+
+},1200);
+
+}
+
+function resetEffects(){
+
+document
+.getElementById("playerFighter")
+.classList.remove("winner","loser");
+
+document
+.getElementById("botFighter")
+.classList.remove("winner","loser");
+
+}
+
+function checkWinner(){
+
+if(playerScore === WIN_SCORE){
+
+document
+.getElementById("result")
+.innerHTML =
+"🏆 YOU WON THE MATCH!";
+
+confetti({
+particleCount:500,
+spread:180,
+startVelocity:50
+});
+
+disableGame();
+
+}
+
+if(botScore === WIN_SCORE){
+
+document
+.getElementById("result")
+.innerHTML =
+"🤖 ROBOT WON THE MATCH!";
+
+disableGame();
+
+}
+
+}
+
+function disableGame(){
+
+document
+.querySelectorAll(".choice")
+.forEach(btn=>{
+btn.disabled=true;
+});
+
+document
+.getElementById("restartBtn")
+.style.display =
+"inline-block";
+
+}
+
+</script>
+
+</body>
+</html>
